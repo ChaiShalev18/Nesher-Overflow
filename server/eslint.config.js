@@ -19,7 +19,6 @@ export default [
             prettier,
         },
         rules: {
-            "prettier/prettier": "error",
             "@typescript-eslint/no-unused-vars": "warn",
         },
         ignores: ["dist", "node_modules"],
