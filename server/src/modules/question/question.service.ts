@@ -1,64 +1,62 @@
 import { FilterQuery, SortOrder } from "mongoose";
-import QuestionModel, { Question } from "./question.model";
+import { QuestionModel, Question } from "./question.model";
 
 interface GetQuestionsOptions {
-  search?: string;
-  sortBy?: "newest" | "popular";
-  favoriteOnly?: boolean;
-  userId?: string;
+	search?: string;
+	sortBy?: "newest" | "popular";
+	favoriteOnly?: boolean;
+	userId?: string;
 }
 
 export const createQuestion = async ({
-  title,
-  content,
-  authorId,
+	title,
+	content,
+	authorId,
 }: {
-  title: string;
-  content: string;
-  authorId: string;
+	title: string;
+	content: string;
+	authorId: string;
 }): Promise<Question> => {
-  return QuestionModel.create({ title, content, author: authorId });
+	return QuestionModel.create({ title, content, author: authorId });
 };
 
 export const getQuestions = async ({
-  search,
-  sortBy = "newest",
-  favoriteOnly,
-  userId,
+	search,
+	sortBy = "newest",
+	favoriteOnly,
+	userId,
 }: GetQuestionsOptions): Promise<Question[]> => {
-  const query: FilterQuery<Question> = {};
+	const query: FilterQuery<Question> = {};
 
-  if (search) {
-    query.title = { $regex: search, $options: "i" };
-  }
+	if (search) {
+		query.title = { $regex: search, $options: "i" };
+	}
 
-  if (favoriteOnly && userId) {
-    query.favoritedBy = userId;
-  }
+	if (favoriteOnly && userId) {
+		query.favoritedBy = userId;
+	}
 
-  const sortOption: { [key: string]: SortOrder } =
-    sortBy === "popular" ? { favorites: -1 } : { createdAt: -1 };
+	const sortOption: { [key: string]: SortOrder } =
+		sortBy === "popular" ? { favorites: -1 } : { createdAt: -1 };
 
-  return QuestionModel.find(query)
-    .sort(sortOption)
-    .populate("author", "email");
+	return QuestionModel.find(query).sort(sortOption).populate("author", "email");
 };
 
 export const deleteQuestion = async (
-  questionId: string,
-  userId: string,
-  isAdmin = false
+	questionId: string,
+	userId: string,
+	isAdmin = false
 ): Promise<Question> => {
-  const question = await QuestionModel.findById(questionId);
+	const question = await QuestionModel.findById(questionId);
 
-  if (!question) {
-    throw new Error("Question not found");
-  }
+	if (!question) {
+		throw new Error("Question not found");
+	}
 
-  if (!isAdmin && question.author.toString() !== userId) {
-    throw new Error("You are not allowed to delete this question");
-  }
+	if (!isAdmin && question.author.toString() !== userId) {
+		throw new Error("You are not allowed to delete this question");
+	}
 
-  await question.deleteOne();
-  return question;
+	await question.deleteOne();
+	return question;
 };
